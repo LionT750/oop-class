@@ -41,7 +41,7 @@ public class App {
         contas.add(conta3);
         
         for (ContaBancaria contaBancaria : contas) {
-            contaBancaria.exibirDados();
+            contaBancaria.toString();
         }
     }
 }

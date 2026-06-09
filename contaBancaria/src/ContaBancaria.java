@@ -98,6 +98,11 @@ public class ContaBancaria {
         System.out.println("Saldo bancário: " + getSaldo());
         System.out.println("Limite de Saque: " + getLimiteSaque());
 
+    }
+
+    @Override
+    public String toString() {
+        return "ContaBancaria [titular=" + titular + ", saldo=" + saldo + ", limiteSaque=" + limiteSaque + "]";
     };
 
 
