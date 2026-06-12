@@ -1,12 +1,9 @@
-import java.util.Scanner;
+import java.util.stream.Collectors;
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
 
 public class App {
     public static void main(String[] args) throws Exception {
-        Inventory<Bebida> bebidas = new Inventory<Bebida>();
-        Inventory<Comida> comidas = new Inventory<Comida>();
-        Scanner sc = new Scanner(System.in);
-        Menu menu = new Menu(bebidas,comidas,sc);
         
-        menu.run();
-    }
 }
