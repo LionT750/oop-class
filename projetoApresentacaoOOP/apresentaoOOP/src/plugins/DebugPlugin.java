@@ -11,9 +11,9 @@ import repository.Repository;
 import utils.Printer;
 
 public class DebugPlugin implements Plugin {
-    private FunctionalityContext context;
     private Repository repo;
     private Menu menu;
+    private FunctionalityContext context;
 
     public DebugPlugin(FunctionalityContext context) {
         this.context = context;
@@ -37,8 +37,7 @@ public class DebugPlugin implements Plugin {
             new ShowSalesCount(),
             new ShowRegisteredPlugins(),
             new ShowLoadedCommands(),
-            new ShowDatabaseState(),
-            new ShowEventStatistics()
+            new ShowDatabaseState()
         );
     }
 
@@ -114,20 +113,6 @@ public class DebugPlugin implements Plugin {
                 System.out.println("  " + s);
             }
             Printer.separator();
-        }
-    }
-
-    private class ShowEventStatistics implements MenuFunctionality {
-        public String getId() { return "debug-events"; }
-        public String getLabel() { return "Show Event Statistics"; }
-        public String getDescription() { return "Display event bus statistics"; }
-        public void execute() {
-            if (context.eventBus == null) {
-                System.out.println("EventBus not available.");
-                return;
-            }
-            System.out.println("Event types: " + context.eventBus.getEventTypeCount());
-            System.out.println("Total listeners: " + context.eventBus.getListenerCount());
         }
     }
 }

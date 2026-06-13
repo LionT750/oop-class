@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import events.SaleCreatedEvent;
 import menu.FunctionalityContext;
 import menu.MenuFunctionality;
 import menu.Plugin;
@@ -18,12 +17,10 @@ import utils.IdGenerator;
 import utils.Printer;
 
 public class SalesPlugin implements Plugin {
-    private FunctionalityContext context;
     private ConsoleReader reader;
     private Repository repo;
 
     public SalesPlugin(FunctionalityContext context) {
-        this.context = context;
         this.reader = new ConsoleReader(context.scanner);
         this.repo = context.repository;
     }
@@ -58,7 +55,7 @@ public class SalesPlugin implements Plugin {
         }
         System.out.println("Available products:");
         for (Product p : products) {
-            System.out.println("  " + p.getId() + " - " + p.getName() + " ($" + String.format("%.2f", p.getPrice()) + ")");
+            System.out.println("  " + p.getId() + " - " + p.getName() + " ($" + String.format("%.2f", p.getPrice()) + ") stock: " + p.getStock());
         }
         System.out.print("Select product ID: ");
         long productId = reader.readInt();
@@ -80,6 +77,10 @@ public class SalesPlugin implements Plugin {
 
             System.out.print("Quantity: ");
             int quantity = reader.readInt();
+            if (quantity > product.getStock()) {
+                Printer.error("Insufficient stock. Available: " + product.getStock());
+                return;
+            }
             System.out.print("Customer name: ");
             String customerName = reader.readString();
             System.out.print("Shipping address: ");
@@ -87,14 +88,13 @@ public class SalesPlugin implements Plugin {
             System.out.print("Postal code: ");
             String postalCode = reader.readString();
 
+            product.setStock(product.getStock() - quantity);
+            repo.updateProduct(product);
+
             SalesPhysical sale = new SalesPhysical(IdGenerator.nextOfferId(), product, quantity,
                                                     customerName, address, postalCode);
             repo.savePhysicalSale(sale);
             Printer.success("Physical sale #" + sale.getId() + " created.");
-
-            if (context.eventBus != null) {
-                context.eventBus.publish(new SaleCreatedEvent(sale));
-            }
         }
     }
 
@@ -108,20 +108,23 @@ public class SalesPlugin implements Plugin {
 
             System.out.print("Quantity: ");
             int quantity = reader.readInt();
+            if (quantity > product.getStock()) {
+                Printer.error("Insufficient stock. Available: " + product.getStock());
+                return;
+            }
             System.out.print("Customer name: ");
             String customerName = reader.readString();
             System.out.print("Email: ");
             String email = reader.readString();
             String downloadKey = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
 
+            product.setStock(product.getStock() - quantity);
+            repo.updateProduct(product);
+
             SalesDigital sale = new SalesDigital(IdGenerator.nextOfferId(), product, quantity,
                                                   customerName, email, downloadKey);
             repo.saveDigitalSale(sale);
             Printer.success("Digital sale #" + sale.getId() + " created. Download key: " + downloadKey);
-
-            if (context.eventBus != null) {
-                context.eventBus.publish(new SaleCreatedEvent(sale));
-            }
         }
     }
 

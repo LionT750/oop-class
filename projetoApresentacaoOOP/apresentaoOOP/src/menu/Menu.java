@@ -4,10 +4,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
-import events.CommandExecutedEvent;
-import events.EventBus;
-import events.PluginLoadedEvent;
-import events.PluginUnloadedEvent;
 import utils.Printer;
 
 public class Menu {
@@ -15,14 +11,12 @@ public class Menu {
     private boolean running;
     private Scanner scanner;
     private PluginRegistry pluginRegistry;
-    private EventBus eventBus;
 
-    public Menu(Scanner scanner, PluginRegistry pluginRegistry, EventBus eventBus) {
+    public Menu(Scanner scanner, PluginRegistry pluginRegistry) {
         this.functionalities = new ArrayList<>();
         this.running = false;
         this.scanner = scanner;
         this.pluginRegistry = pluginRegistry;
-        this.eventBus = eventBus;
     }
 
     public void addFunctionality(MenuFunctionality functionality) {
@@ -57,9 +51,6 @@ public class Menu {
             addFunctionality(f);
         }
         Printer.success("Plugin loaded: " + plugin.getName());
-        if (eventBus != null) {
-            eventBus.publish(new PluginLoadedEvent(plugin));
-        }
     }
 
     public void unloadPlugin(String pluginId) {
@@ -70,9 +61,6 @@ public class Menu {
             }
             pluginRegistry.unregisterPlugin(pluginId);
             Printer.success("Plugin unloaded: " + plugin.getName());
-            if (eventBus != null) {
-                eventBus.publish(new PluginUnloadedEvent(pluginId));
-            }
         } else {
             Printer.error("Plugin not found: " + pluginId);
         }
@@ -105,9 +93,6 @@ public class Menu {
                 MenuFunctionality selected = functionalities.get(choice - 1);
                 Printer.header(selected.getLabel());
                 selected.execute();
-                if (eventBus != null) {
-                    eventBus.publish(new CommandExecutedEvent(selected));
-                }
             } else if (choice == 0) {
                 stop();
             } else {

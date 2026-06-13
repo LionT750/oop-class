@@ -3,8 +3,6 @@ package plugins;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import events.ProductCreatedEvent;
-import events.ProductDeletedEvent;
 import menu.FunctionalityContext;
 import menu.MenuFunctionality;
 import menu.Plugin;
@@ -15,12 +13,10 @@ import utils.IdGenerator;
 import utils.Printer;
 
 public class ProductPlugin implements Plugin {
-    private FunctionalityContext context;
     private ConsoleReader reader;
     private Repository repo;
 
     public ProductPlugin(FunctionalityContext context) {
-        this.context = context;
         this.reader = new ConsoleReader(context.scanner);
         this.repo = context.repository;
     }
@@ -58,14 +54,12 @@ public class ProductPlugin implements Plugin {
             String description = reader.readString();
             System.out.print("Price: ");
             double price = reader.readDouble();
+            System.out.print("Stock quantity: ");
+            int stock = reader.readInt();
 
-            Product product = new Product(IdGenerator.nextProductId(), name, description, price);
+            Product product = new Product(IdGenerator.nextProductId(), name, description, price, stock);
             repo.saveProduct(product);
             Printer.success("Product #" + product.getId() + " created.");
-
-            if (context.eventBus != null) {
-                context.eventBus.publish(new ProductCreatedEvent(product));
-            }
         }
     }
 
@@ -98,6 +92,7 @@ public class ProductPlugin implements Plugin {
                 System.out.println(opt.get());
                 Product p = opt.get();
                 System.out.println("  Description: " + p.getDescription());
+                System.out.println("  Stock: " + p.getStock());
                 System.out.println("  Active: " + p.isActive());
             } else {
                 Printer.error("Product not found.");
@@ -125,10 +120,13 @@ public class ProductPlugin implements Plugin {
             String description = reader.readString();
             System.out.print("New price (" + product.getPrice() + "): ");
             double price = reader.readDouble();
+            System.out.print("New stock (" + product.getStock() + "): ");
+            int stock = reader.readInt();
 
             product.setName(name);
             product.setDescription(description);
             product.setPrice(price);
+            product.setStock(stock);
             repo.updateProduct(product);
             Printer.success("Product updated.");
         }
@@ -148,10 +146,6 @@ public class ProductPlugin implements Plugin {
             }
             repo.deleteProduct(opt.get());
             Printer.success("Product deleted.");
-
-            if (context.eventBus != null) {
-                context.eventBus.publish(new ProductDeletedEvent(opt.get()));
-            }
         }
     }
 

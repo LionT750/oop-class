@@ -10,10 +10,18 @@ import models.SalesDigital;
 import models.SalesPhysical;
 
 public class Repository {
+    private static Repository instance;
     private InMemoryDatabase db;
 
-    public Repository(InMemoryDatabase db) {
-        this.db = db;
+    private Repository() {
+        this.db = InMemoryDatabase.getInstance();
+    }
+
+    public static Repository getInstance() {
+        if (instance == null) {
+            instance = new Repository();
+        }
+        return instance;
     }
 
     public void saveProduct(Product product) {
