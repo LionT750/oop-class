@@ -1,822 +1,817 @@
-# Dynamic CLI Plugin Framework
+# Framework de CLI Dinamico com Plugins
 
-Version: 0.1
+Versao: 0.1
 
-Language: Java
+Linguagem: Java
 
-Dependencies: None
+Dependencias: Nenhuma
 
-Storage: In Memory
+Armazenamento: Em Memoria
 
 Interface: CLI / Console
 
-Pattern Focus:
+Foco em Padroes:
 
 * OOP
-* Repository Pattern
-* Command Pattern
-* Plugin Architecture
-* Dynamic Menu Composition
+* Padrao Repository
+* Padrao Command
+* Arquitetura de Plugins
+* Composicao Dinamica de Menu
 
 ---
 
-# 1. Purpose
+# 1. Proposito
 
-Build a small Java application that demonstrates a dynamic CLI framework.
+Construir uma aplicacao Java pequena que demonstre um framework CLI dinamico.
 
-The application must support:
+A aplicacao deve suportar:
 
-* Dynamic menu generation
-* Runtime functionality registration
-* Plugin-based feature modules
-* In-memory persistence
-* Repository abstraction
-* Zero external libraries
+* Geracao dinamica de menu
+* Registro runtime de funcionalidades
+* Modulos de funcionalidade baseados em plugins
+* Persistencia em memoria
+* Abstração de repositorio
+* Zero bibliotecas externas
 
-The business domain used for demonstration is a simple sales system.
+O dominio de negocio usado para demonstracao e um sistema de vendas simples.
 
-The framework itself must remain domain-independent.
-
----
-
-# 2. Design Goals
-
-## Primary Goals
-
-* No switch/case menu implementation
-* No hardcoded menu numbering
-* Runtime addition of commands
-* Runtime addition of plugins
-* Simple architecture
-* Educational codebase
-* Easy future expansion
-
-## Secondary Goals
-
-* Simulate real plugin systems
-* Keep modules isolated
-* Support future persistence layers
-* Support future permissions
-* Support future events
+O framework em si deve permanecer independente de dominio.
 
 ---
 
-# 3. High Level Architecture
+# 2. Objetivos de Design
 
-Main
+## Objetivos Primarios
+
+* Nenhuma implementacao de menu com switch/case
+* Nenhuma numeracao de menu hardcoded
+* Adicao de comandos em tempo de execucao
+* Adicao de plugins em tempo de execucao
+* Arquitetura simples
+* Codigo-base educacional
+* Facil expansao futura
+
+## Objetivos Secundarios
+
+* Simular sistemas reais de plugins
+* Manter modulos isolados
+* Suportar futuras camadas de persistencia
+* Suportar futuras permissoes
+* Suportar futuros eventos
+
+---
+
+# 3. Arquitetura de Alto Nivel
+
+Principal
 ↓
-Menu Engine
+Mecanismo de Menu
 ↓
 Plugins
 ↓
-Functionalities (Commands)
+Funcionalidades (Comandos)
 ↓
-Repository
+Repositorio
 ↓
-InMemoryDatabase
+BancoDeDadosEmMemoria
 
 ---
 
-# 4. Package Structure
+# 4. Estrutura de Pacotes
 
 src/
 
-├── app
-│   └── Main.java
+├── aplicacao
+│   └── Principal.java
 │
-├── models
-│   ├── Product.java
-│   ├── Offer.java
-│   ├── SalesPhysical.java
-│   └── SalesDigital.java
+├── modelos
+│   ├── Produto.java
+│   ├── Oferta.java
+│   ├── VendaFisica.java
+│   └── VendaDigital.java
 │
-├── data
-│   └── InMemoryDatabase.java
+├── dados
+│   └── BancoDeDadosEmMemoria.java
 │
-├── repository
-│   └── Repository.java
+├── repositorio
+│   └── Repositorio.java
 │
 ├── menu
 │   ├── Menu.java
-│   ├── MenuFunctionality.java
+│   ├── FuncionalidadeMenu.java
 │   ├── Plugin.java
-│   ├── FunctionalityContext.java
-│   └── PluginRegistry.java
+│   ├── ContextoFuncionalidade.java
+│   └── RegistroPlugin.java
 │
 ├── plugins
-│   ├── ProductPlugin.java
-│   ├── SalesPlugin.java
-│   ├── DebugPlugin.java
-│   ├── AdminPlugin.java
-│   └── RuntimePluginLoader.java
+│   ├── PluginProduto.java
+│   ├── PluginVenda.java
+│   ├── PluginDepuracao.java
+│   ├── PluginAdmin.java
+│   └── CarregadorPluginRuntime.java
 │
-├── utils
-│   ├── ConsoleReader.java
-│   ├── IdGenerator.java
-│   └── Printer.java
+├── utilitarios
+│   ├── LeitorConsole.java
+│   ├── GeradorId.java
+│   └── Impressora.java
 │
-└── events
-├── EventBus.java
-├── Event.java
-└── listeners
+└── eventos
+    ├── BarramentoEventos.java
+    ├── Evento.java
+    └── ouvintes
 
 ---
 
-# 5. Domain Model
+# 5. Modelo de Dominio
 
-## Product
+## Produto
 
-Represents a product available for sale.
+Representa um produto disponivel para venda.
 
-Fields:
+Campos:
 
 Long id
-String name
-String description
-double price
-boolean active
+String nome
+String descricao
+double preco
+int estoque
+boolean ativo
 
 ---
 
-## Offer
+## Oferta
 
-Base class.
+Classe base.
 
-Fields:
+Campos:
 
 Long id
-Product product
-int quantity
-LocalDateTime createdAt
+Produto produto
+int quantidade
+LocalDateTime criadaEm
 
 ---
 
-## SalesPhysical
+## VendaFisica
 
-Extends Offer.
+Estende Oferta.
 
-Fields:
+Campos:
 
-String customerName
-String shippingAddress
-String postalCode
+String nomeCliente
+String enderecoEntrega
+String codigoPostal
 
 ---
 
-## SalesDigital
+## VendaDigital
 
-Extends Offer.
+Estende Oferta.
 
-Fields:
+Campos:
 
-String customerName
+String nomeCliente
 String email
-String downloadKey
+String chaveDownload
 
 ---
 
-# 6. InMemoryDatabase
+# 6. BancoDeDadosEmMemoria
 
-Purpose:
+Proposito:
 
-Store all application data.
+Armazenar todos os dados da aplicacao.
 
-Rules:
+Regras:
 
-* Data only
-* No business logic
-* No validation
-* No searching
-* No filtering
+* Apenas dados
+* Sem logica de negocios
+* Sem validacao
+* Sem busca
+* Sem filtragem
 
-Structure:
+Estrutura:
 
-class InMemoryDatabase {
+class BancoDeDadosEmMemoria {
 
 ```
-ArrayList<Product> products;
+ArrayList<Produto> produtos;
 
-ArrayList<Offer> offers;
+ArrayList<Oferta> ofertas;
 
-ArrayList<SalesPhysical> physicalSales;
+ArrayList<VendaFisica> vendasFisicas;
 
-ArrayList<SalesDigital> digitalSales;
+ArrayList<VendaDigital> vendasDigitais;
 ```
 
 }
 
 ---
 
-# 7. Repository Layer
+# 7. Camada de Repositorio
 
-Purpose:
+Proposito:
 
-Single access point to persistence.
+Ponto unico de acesso a persistencia.
 
-Menu and plugins never touch database collections directly.
+Menu e plugins nunca tocam colecoes do banco de dados diretamente.
 
-Responsibilities:
+Responsabilidades:
 
-saveProduct()
+salvarProduto()
 
-findProductById()
+buscarProdutoPorId()
 
-findAllProducts()
+listarTodosProdutos()
 
-deleteProduct()
+deletarProduto()
 
-updateProduct()
+atualizarProduto()
 
-savePhysicalSale()
+salvarVendaFisica()
 
-saveDigitalSale()
+salvarVendaDigital()
 
-findAllPhysicalSales()
+listarTodasVendasFisicas()
 
-findAllDigitalSales()
+listarTodasVendasDigitais()
 
-countProducts()
+contarProdutos()
 
-countSales()
+contarVendas()
 
-clearProducts()
+limparProdutos()
 
-clearSales()
+limparVendas()
 
-resetDatabase()
+reiniciarBancoDeDados()
 
-Future Implementations:
+Implementacoes Futuras:
 
-MemoryRepository
-FileRepository
-SqlRepository
-ApiRepository
+RepositorioMemoria
+RepositorioArquivo
+RepositorioSql
+RepositorioApi
 
 ---
 
-# 8. Functionality Context
+# 8. Contexto de Funcionalidade
 
-Shared dependency container.
+Container de dependencias compartilhado.
 
-class FunctionalityContext {
+class ContextoFuncionalidade {
 
 ```
-Repository repository;
+Repositorio repositorio;
 
 Menu menu;
 
 Scanner scanner;
 
-PluginRegistry pluginRegistry;
-
-EventBus eventBus;
+RegistroPlugin registroPlugin;
 ```
 
 }
 
-Purpose:
+Proposito:
 
-Provide dependencies to functionalities without globals.
+Fornecer dependencias para funcionalidades sem globais.
 
 ---
 
-# 9. MenuFunctionality Interface
+# 9. Interface FuncionalidadeMenu
 
-Every executable menu action implements this interface.
+Toda acao executavel do menu implementa esta interface.
 
-public interface MenuFunctionality {
+public interface FuncionalidadeMenu {
 
 ```
 String getId();
 
-String getLabel();
+String getRotulo();
 
-String getDescription();
+String getDescricao();
 
-void execute();
+void executar();
 ```
 
 }
 
-Examples:
+Exemplos:
 
-create-product
-list-products
-delete-product
-create-sale
-exit
-
----
-
-# 10. Command Pattern
-
-Every menu item is represented by an object.
-
-Menu never contains business logic.
-
-Menu only executes:
-
-selected.execute();
-
-Benefits:
-
-* No switch
-* No if chains
-* Open for extension
-* Easy plugin integration
+criar-produto
+listar-produtos
+deletar-produto
+criar-venda
+sair
 
 ---
 
-# 11. Plugin Interface
+# 10. Padrao Command
+
+Cada item de menu e representado por um objeto.
+
+Menu nunca contem logica de negocios.
+
+Menu apenas executa:
+
+selecionada.executar();
+
+Beneficios:
+
+* Sem switch
+* Sem cadeias de if
+* Aberto para extensao
+* Integracao facil de plugins
+
+---
+
+# 11. Interface Plugin
 
 public interface Plugin {
 
 ```
 String getId();
 
-String getName();
+String getNome();
 
-String getDescription();
+String getDescricao();
 
-List<MenuFunctionality> getFunctionalities();
+List<FuncionalidadeMenu> getFuncionalidades();
 ```
 
 }
 
-Purpose:
+Proposito:
 
-Provide groups of functionalities.
+Fornecer grupos de funcionalidades.
 
 ---
 
-# 12. Plugin Registry
+# 12. Registro de Plugins
 
-Responsible for managing plugins.
+Responsavel por gerenciar plugins.
 
-Responsibilities:
+Responsabilidades:
 
-registerPlugin()
+registrarPlugin()
 
-unregisterPlugin()
+desregistrarPlugin()
 
 getPlugin()
 
-getAllPlugins()
+getTodosPlugins()
 
-loadPluginFunctionalities()
+carregarFuncionalidadesPlugin()
 
-Prevent duplicate plugin IDs.
+Prevenir IDs de plugin duplicados.
 
 ---
 
-# 13. Plugin Structure
+# 13. Estrutura de Plugin
 
-Recommended structure:
+Estrutura recomendada:
 
-public class ProductPlugin implements Plugin {
+public class PluginProduto implements Plugin {
 
 ```
-class CreateProduct
-        implements MenuFunctionality {}
+class CriarProduto
+        implements FuncionalidadeMenu {}
 
-class ListProducts
-        implements MenuFunctionality {}
+class ListarProdutos
+        implements FuncionalidadeMenu {}
 
-class DeleteProduct
-        implements MenuFunctionality {}
+class DeletarProduto
+        implements FuncionalidadeMenu {}
 ```
 
 }
 
-Reason:
+Motivo:
 
-Plugin becomes self-contained.
+Plugin torna-se autocontido.
 
-Commands live with their module.
+Comandos vivem com seu modulo.
 
-Closer to real plugin architecture.
-
----
-
-# 14. Menu Engine
-
-Fields:
-
-List<MenuFunctionality> functionalities;
-
-boolean running;
-
-Responsibilities:
-
-loadFunctionalities()
-
-loadPlugin()
-
-addFunctionality()
-
-removeFunctionality()
-
-clearFunctionalities()
-
-stop()
-
-run()
+Mais proximo de arquitetura real de plugins.
 
 ---
 
-# 15. Automatic Menu Generation
+# 14. Mecanismo de Menu
 
-Menu options generated dynamically.
+Campos:
 
-Example:
+List<FuncionalidadeMenu> funcionalidades;
 
-1 - Create Product
-2 - List Products
-3 - Create Physical Sale
-4 - Load Debug Plugin
-5 - Exit
+boolean executando;
 
-Generated directly from functionality list.
+Responsabilidades:
 
-No hardcoded numbering.
+carregarFuncionalidades()
+
+carregarPlugin()
+
+adicionarFuncionalidade()
+
+removerFuncionalidade()
+
+limparFuncionalidades()
+
+parar()
+
+executar()
 
 ---
 
-# 16. Runtime Functionality Registration
+# 15. Geracao Automatica de Menu
 
-Any command may register another command.
+Opcoes de menu geradas dinamicamente.
 
-Example:
+Exemplo:
 
-LoadDebugCommand
+1 - Criar Produto
+2 - Listar Produtos
+3 - Criar Venda Fisica
+4 - Carregar Plugin de Depuracao
+5 - Sair
 
-Executes:
+Gerado diretamente da lista de funcionalidades.
 
-menu.addFunctionality(
-new DebugStatistics()
+Nenhuma numeracao hardcoded.
+
+---
+
+# 16. Registro Runtime de Funcionalidades
+
+Qualquer comando pode registrar outro comando.
+
+Exemplo:
+
+CarregarComandoDepuracao
+
+Executa:
+
+menu.adicionarFuncionalidade(
+new MostrarEstatisticasDepuracao()
 );
 
-New option appears immediately.
+Nova opcao aparece imediatamente.
 
-No restart required.
+Nenhum reinicio necessario.
 
 ---
 
-# 17. Runtime Plugin Loading
+# 17. Carregamento Runtime de Plugins
 
-Any command may load a plugin.
+Qualquer comando pode carregar um plugin.
 
-Example:
+Exemplo:
 
-LoadAdminPluginCommand
+CarregarPluginAdminComando
 
-Executes:
+Executa:
 
-menu.loadPlugin(
-new AdminPlugin(context)
+menu.carregarPlugin(
+new PluginAdmin(contexto)
 );
 
-Menu updates automatically.
+Menu atualiza automaticamente.
 
 ---
 
-# 18. Product Plugin
+# 18. Plugin de Produto
 
-Responsibilities:
+Responsabilidades:
 
-Create Product
+Criar Produto
 
-List Products
+Listar Produtos
 
-Find Product
+Buscar Produto
 
-Update Product
+Atualizar Produto
 
-Delete Product
+Deletar Produto
 
-Deactivate Product
+Desativar Produto
 
-Count Products
-
----
-
-# 19. Sales Plugin
-
-Responsibilities:
-
-Create Physical Sale
-
-Create Digital Sale
-
-List Physical Sales
-
-List Digital Sales
-
-List All Sales
-
-Find Sale
-
-Count Sales
+Contar Produtos
 
 ---
 
-# 20. Debug Plugin
+# 19. Plugin de Venda
 
-Responsibilities:
+Responsabilidades:
 
-Show Product Count
+Criar Venda Fisica
 
-Show Sales Count
+Criar Venda Digital
 
-Show Registered Plugins
+Listar Vendas Fisicas
 
-Show Loaded Commands
+Listar Vendas Digitais
 
-Show Database State
+Listar Todas as Vendas
 
-Dump Memory State
+Buscar Venda
 
-Show Event Statistics
-
----
-
-# 21. Admin Plugin
-
-Responsibilities:
-
-Clear Products
-
-Clear Sales
-
-Reset Database
-
-Unload Plugin
-
-Disable Command
-
-Enable Command
+Contar Vendas
 
 ---
 
-# 22. Exit Functionality
+# 20. Plugin de Depuracao
 
-Responsibilities:
+Responsabilidades:
 
-Stop application loop.
+Mostrar Contagem de Produtos
 
-Implementation:
+Mostrar Contagem de Vendas
 
-menu.stop();
+Mostrar Plugins Registrados
 
----
+Mostrar Comandos Carregados
 
-# 23. Plugin Loader Plugin
-
-Special plugin responsible for loading other plugins.
-
-Commands:
-
-Load Debug Plugin
-
-Load Admin Plugin
-
-Unload Plugin
-
-List Plugins
-
-This demonstrates runtime extensibility.
+Mostrar Estado do Banco de Dados
 
 ---
 
-# 24. Event System (Optional Phase 2)
+# 21. Plugin Admin
 
-Introduce lightweight event bus.
+Responsabilidades:
 
-Event Types:
+Limpar Produtos
 
-ProductCreatedEvent
+Limpar Vendas
 
-ProductDeletedEvent
+Reiniciar Banco de Dados
 
-SaleCreatedEvent
+Descarregar Plugin
 
-PluginLoadedEvent
+Desabilitar Comando
 
-PluginUnloadedEvent
-
-CommandExecutedEvent
-
-Benefits:
-
-Loose coupling.
+Habilitar Comando
 
 ---
 
-# 25. Event Bus
+# 22. Funcionalidade Sair
 
-Responsibilities:
+Responsabilidades:
 
-publish()
+Parar o loop da aplicacao.
 
-subscribe()
+Implementacao:
 
-unsubscribe()
-
-Plugins may react to events.
-
-Example:
-
-StatisticsPlugin listens to SaleCreatedEvent.
+System.exit(0);
 
 ---
 
-# 26. Permission System (Optional Phase 2)
+# 23. Plugin Carregador de Plugins
 
-Roles:
+Plugin especial responsavel por carregar outros plugins.
+
+Comandos:
+
+Carregar Plugin de Depuracao
+
+Carregar Plugin Admin
+
+Descarregar Plugin
+
+Listar Plugins
+
+Isso demonstra extensibilidade em tempo de execucao.
+
+---
+
+# 24. Sistema de Eventos (Fase 2 Opcional)
+
+Introduzir barramento de eventos leve.
+
+Tipos de Evento:
+
+EventoProdutoCriado
+
+EventoProdutoDeletado
+
+EventoVendaCriada
+
+EventoPluginCarregado
+
+EventoPluginDescarregado
+
+EventoComandoExecutado
+
+Beneficios:
+
+Baixo acoplamento.
+
+---
+
+# 25. Barramento de Eventos
+
+Responsabilidades:
+
+publicar()
+
+inscrever()
+
+desinscrever()
+
+Plugins podem reagir a eventos.
+
+Exemplo:
+
+PluginEstatisticas escuta EventoVendaCriada.
+
+---
+
+# 26. Sistema de Permissoes (Fase 2 Opcional)
+
+Papeis:
 
 ADMIN
 
-USER
+USUARIO
 
-DEBUG
+DEPURACAO
 
-GUEST
+CONVIDADO
 
-Functionality extension:
+Extensao de funcionalidade:
 
-requiredRole()
+cargoExigido()
 
-Menu hides unauthorized commands.
+Menu esconde comandos nao autorizados.
 
 ---
 
-# 27. Future File-Based Plugins
+# 27. Plugins Baseados em Arquivo (Futuro)
 
-Current:
+Atual:
 
-menu.loadPlugin(
-new SalesPlugin(context)
+menu.carregarPlugin(
+new PluginVenda(contexto)
 );
 
-Future:
+Futuro:
 
 plugins/
 
-sales.plugin
+venda.plugin
 
-debug.plugin
+depuracao.plugin
 
 admin.plugin
 
-Framework scans folder.
+Framework varre pasta.
 
-Discovers plugins.
+Descobre plugins.
 
-Registers automatically.
+Registra automaticamente.
 
-Simulates real-world plugin platforms.
-
----
-
-# 28. Utility Classes
-
-ConsoleReader
-
-Purpose:
-Input validation
-
-Methods:
-
-readInt()
-
-readString()
-
-readDouble()
+Simula plataformas reais de plugins.
 
 ---
 
-Printer
+# 28. Classes Utilitarias
 
-Purpose:
-Consistent console output
+LeitorConsole
 
-Methods:
+Proposito:
+Validacao de entrada
 
-header()
+Metodos:
 
-separator()
+lerInt()
 
-error()
+lerString()
 
-success()
-
----
-
-IdGenerator
-
-Purpose:
-Generate IDs
-
-Methods:
-
-nextProductId()
-
-nextOfferId()
+lerDouble()
 
 ---
 
-# 29. Startup Flow
+Impressora
 
-1. Create Database
+Proposito:
+Saida de console consistente
 
-2. Create Repository
+Metodos:
 
-3. Create EventBus
+cabecalho()
 
-4. Create PluginRegistry
+separador()
 
-5. Create Menu
+erro()
 
-6. Create Context
+sucesso()
 
-7. Create Plugins
+---
 
-8. Register Plugins
+GeradorId
 
-9. Load Functionalities
+Proposito:
+Gerar IDs
 
-10. Start Menu
+Metodos:
 
-Pseudo Flow:
+proximoIdProduto()
 
-Main
+proximoIdOferta()
+
+---
+
+# 29. Fluxo de Inicializacao
+
+1. Criar Banco de Dados
+
+2. Criar Repositorio
+
+3. Criar RegistroPlugin
+
+4. Criar Menu
+
+5. Criar Contexto
+
+6. Criar Plugins
+
+7. Registrar Plugins
+
+8. Carregar Funcionalidades
+
+9. Iniciar Menu
+
+Fluxo Pseudo:
+
+Principal
 ↓
-Database
+BancoDeDados
 ↓
-Repository
+Repositorio
 ↓
-Context
+Contexto
 ↓
 Plugins
 ↓
-Menu.loadPlugin(...)
+Menu.carregarPlugin(...)
 ↓
-Menu.run()
+Menu.executar()
 
 ---
 
-# 30. Success Criteria
+# 30. Criterios de Sucesso
 
-The project is successful when it demonstrates:
+O projeto e bem-sucedido quando demonstra:
 
 ✓ Java OOP
 
-✓ Inheritance
+✓ Heranca
 
-✓ Encapsulation
+✓ Encapsulamento
 
-✓ Repository Pattern
+✓ Padrao Repository
 
-✓ Command Pattern
+✓ Padrao Command
 
-✓ Plugin Pattern
+✓ Padrao Plugin
 
-✓ Dynamic Menu Generation
+✓ Geracao Dinamica de Menu
 
-✓ Runtime Command Registration
+✓ Registro Runtime de Comandos
 
-✓ Runtime Plugin Registration
+✓ Registro Runtime de Plugins
 
-✓ In-Memory Persistence
+✓ Persistencia em Memoria
 
-✓ Separation of Concerns
+✓ Separacao de Responsabilidades
 
-✓ No External Libraries
+✓ Sem Bibliotecas Externas
 
-✓ No Switch-Based Menu
+✓ Sem Menu Baseado em Switch
 
-✓ Extensible Architecture
+✓ Arquitetura Extensivel
 
 ---
 
-# 31. Stretch Goals
+# 31. Metas Estendidas
 
-Phase 2
+Fase 2
 
-* Event Bus
-* Permissions
-* Command History
-* Undo Commands
-* Plugin Discovery Folder
-* Save To File
-* Import / Export Data
+* Barramento de Eventos
+* Permissoes
+* Historico de Comandos
+* Comandos Desfazer
+* Pasta de Descoberta de Plugins
+* Salvar em Arquivo
+* Importar / Exportar Dados
 
-Phase 3
+Fase 3
 
-* Reflection-based plugin loading
-* Annotation-driven command registration
-* Nested menus
-* Scheduled commands
-* Lightweight dependency injection container
+* Carregamento de plugins baseado em reflexao
+* Registro de comandos orientado por anotacoes
+* Menus aninhados
+* Comandos agendados
+* Container leve de injecao de dependencia
 
-The final architecture should feel less like a sales application and more like a miniature plugin-capable application platform that happens to ship with a sales module.
+A arquitetura final deve parecer menos com um aplicativo de vendas e mais com uma plataforma de aplicativos em miniatura capaz de plugins que vem com um modulo de vendas.
+
+(Fim do arquivo - total 822 linhas)

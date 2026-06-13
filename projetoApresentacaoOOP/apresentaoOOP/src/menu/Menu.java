@@ -5,113 +5,113 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
-import utils.Printer;
+import utilitarios.Impressora;
 
 public class Menu {
-    private List<MenuFunctionality> functionalities;
-    private boolean running;
+    private List<FuncionalidadeMenu> funcionalidades;
+    private boolean executando;
     private Scanner scanner;
-    private PluginRegistry pluginRegistry;
-    private Runnable onChanged;
+    private RegistroPlugin registroPlugin;
+    private Runnable aoAlterar;
 
-    public Menu(Scanner scanner, PluginRegistry pluginRegistry) {
-        this.functionalities = new ArrayList<>();
-        this.running = false;
+    public Menu(Scanner scanner, RegistroPlugin registroPlugin) {
+        this.funcionalidades = new ArrayList<>();
+        this.executando = false;
         this.scanner = scanner;
-        this.pluginRegistry = pluginRegistry;
+        this.registroPlugin = registroPlugin;
     }
 
-    public void setOnChanged(Runnable r) { this.onChanged = r; }
+    public void setAoAlterar(Runnable r) { this.aoAlterar = r; }
 
-    public void addFunctionality(MenuFunctionality functionality) {
-        functionalities.add(functionality);
-        if (onChanged != null) onChanged.run();
+    public void adicionarFuncionalidade(FuncionalidadeMenu funcionalidade) {
+        funcionalidades.add(funcionalidade);
+        if (aoAlterar != null) aoAlterar.run();
     }
 
-    public void removeFunctionality(String id) {
-        Iterator<MenuFunctionality> it = functionalities.iterator();
+    public void removerFuncionalidade(String id) {
+        Iterator<FuncionalidadeMenu> it = funcionalidades.iterator();
         while (it.hasNext()) {
             if (it.next().getId().equals(id)) {
                 it.remove();
-                if (onChanged != null) onChanged.run();
+                if (aoAlterar != null) aoAlterar.run();
                 return;
             }
         }
     }
 
-    public boolean hasFunctionality(String id) {
-        return functionalities.stream().anyMatch(f -> f.getId().equals(id));
+    public boolean temFuncionalidade(String id) {
+        return funcionalidades.stream().anyMatch(f -> f.getId().equals(id));
     }
 
-    private List<MenuFunctionality> getSorted() {
-        List<MenuFunctionality> sorted = new ArrayList<>(functionalities);
-        sorted.sort(Comparator.comparingInt(MenuFunctionality::order));
-        return sorted;
+    private List<FuncionalidadeMenu> getOrdenadas() {
+        List<FuncionalidadeMenu> ordenadas = new ArrayList<>(funcionalidades);
+        ordenadas.sort(Comparator.comparingInt(FuncionalidadeMenu::ordem));
+        return ordenadas;
     }
 
-    public List<MenuFunctionality> getFunctionalities() {
-        return getSorted();
+    public List<FuncionalidadeMenu> getFuncionalidades() {
+        return getOrdenadas();
     }
 
-    public void clearFunctionalities() {
-        functionalities.clear();
+    public void limparFuncionalidades() {
+        funcionalidades.clear();
     }
 
-    public void loadPlugin(Plugin plugin) {
-        pluginRegistry.registerPlugin(plugin);
-        for (MenuFunctionality f : plugin.getFunctionalities()) {
-            addFunctionality(f);
+    public void carregarPlugin(Plugin plugin) {
+        registroPlugin.registrarPlugin(plugin);
+        for (FuncionalidadeMenu f : plugin.getFuncionalidades()) {
+            adicionarFuncionalidade(f);
         }
-        Printer.success("Plugin loaded: " + plugin.getName());
+        Impressora.sucesso("Plugin carregado: " + plugin.getNome());
     }
 
-    public void unloadPlugin(String pluginId) {
-        Plugin plugin = pluginRegistry.getPlugin(pluginId);
+    public void descarregarPlugin(String pluginId) {
+        Plugin plugin = registroPlugin.getPlugin(pluginId);
         if (plugin != null) {
-            for (MenuFunctionality f : plugin.getFunctionalities()) {
-                removeFunctionality(f.getId());
+            for (FuncionalidadeMenu f : plugin.getFuncionalidades()) {
+                removerFuncionalidade(f.getId());
             }
-            pluginRegistry.unregisterPlugin(pluginId);
-            Printer.success("Plugin unloaded: " + plugin.getName());
+            registroPlugin.desregistrarPlugin(pluginId);
+            Impressora.sucesso("Plugin descarregado: " + plugin.getNome());
         } else {
-            Printer.error("Plugin not found: " + pluginId);
+            Impressora.erro("Plugin nao encontrado: " + pluginId);
         }
     }
 
-    public void stop() {
-        this.running = false;
+    public void parar() {
+        this.executando = false;
     }
 
-    public void run() {
-        running = true;
-        while (running) {
-            Printer.separator();
-            Printer.header("MENU");
-            List<MenuFunctionality> sorted = getSorted();
-            for (int i = 0; i < sorted.size(); i++) {
-                MenuFunctionality f = sorted.get(i);
-                System.out.println((i + 1) + " - " + f.getLabel());
+    public void executar() {
+        executando = true;
+        while (executando) {
+            Impressora.separador();
+            Impressora.cabecalho("MENU");
+            List<FuncionalidadeMenu> ordenadas = getOrdenadas();
+            for (int i = 0; i < ordenadas.size(); i++) {
+                FuncionalidadeMenu f = ordenadas.get(i);
+                System.out.println((i + 1) + " - " + f.getRotulo());
             }
-            System.out.print("Choose: ");
+            System.out.print("Escolha: ");
 
-            int choice;
+            int escolha;
             try {
-                choice = Integer.parseInt(scanner.nextLine());
+                escolha = Integer.parseInt(scanner.nextLine());
             } catch (NumberFormatException e) {
-                System.out.println("Invalid option.");
+                System.out.println("Opcao invalida.");
                 continue;
             }
 
-            if (choice >= 1 && choice <= sorted.size()) {
-                MenuFunctionality selected = sorted.get(choice - 1);
-                Printer.header(selected.getLabel());
-                selected.execute();
-            } else if (choice == 0) {
-                stop();
+            if (escolha >= 1 && escolha <= ordenadas.size()) {
+                FuncionalidadeMenu selecionada = ordenadas.get(escolha - 1);
+                Impressora.cabecalho(selecionada.getRotulo());
+                selecionada.executar();
+            } else if (escolha == 0) {
+                parar();
             } else {
-                System.out.println("Invalid option.");
+                System.out.println("Opcao invalida.");
             }
         }
-        System.out.println("Shutting down. Goodbye!");
+        System.out.println("Encerrando. Ate logo!");
     }
 }

@@ -5,17 +5,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class PluginRegistry {
+public class RegistroPlugin {
     private Map<String, Plugin> plugins = new HashMap<>();
 
-    public void registerPlugin(Plugin plugin) {
+    public void registrarPlugin(Plugin plugin) {
         if (plugins.containsKey(plugin.getId())) {
-            throw new IllegalArgumentException("Plugin already registered: " + plugin.getId());
+            throw new IllegalArgumentException("Plugin ja registrado: " + plugin.getId());
         }
         plugins.put(plugin.getId(), plugin);
     }
 
-    public void unregisterPlugin(String id) {
+    public void desregistrarPlugin(String id) {
         plugins.remove(id);
     }
 
@@ -23,11 +23,11 @@ public class PluginRegistry {
         return plugins.get(id);
     }
 
-    public List<Plugin> getAllPlugins() {
+    public List<Plugin> getTodosPlugins() {
         return new ArrayList<>(plugins.values());
     }
 
-    public boolean containsPlugin(String id) {
+    public boolean contemPlugin(String id) {
         return plugins.containsKey(id);
     }
 }

@@ -1,125 +1,111 @@
-# Desktop UI Spec (Windows 11)
+# Especificacao da Interface Desktop (Windows 11)
 
-Version: 0.1 | Toolkit: Java Swing (included in JDK, zero dependencies)
-
----
-
-## 1. Approach
-
-Wrap the existing CLI menu engine in a Swing window. No business logic moves — plugins and commands remain untouched. The UI layer is a thin shell.
+Versao: 0.1 | Toolkit: Java Swing (incluido no JDK, zero dependencias)
 
 ---
 
-## 2. New Package
+## 1. Abordagem
+
+Envolver o mecanismo de menu CLI existente em uma janela Swing. Nenhuma logica de negocios se move — plugins e comandos permanecem intocados. A camada de interface e uma casca fina.
+
+---
+
+## 2. Novo Pacote
 
 ```
 src/
-  ui/
-    AppWindow.java       # JFrame with menu + panel
-    OutputPanel.java     # JTextArea for command output
+  iu/
+    JanelaApp.java       # JFrame com menu + painel
 ```
 
-Only 2 new files. Use `SwingUtilities.invokeLater` in `Main.java` to launch.
+Apenas 1 novo arquivo. Use `SwingUtilities.invokeLater` em `Principal.java` para lancar.
 
 ---
 
-## 3. AppWindow
+## 3. JanelaApp
 
 ```java
-// Pseudocode
-class AppWindow extends JFrame {
-    JPanel buttonPanel;
-    JTextArea output;
+// Pseudocodigo
+class JanelaApp extends JFrame {
+    JPanel painelBotoes;
+    JTextArea saida;
     Menu menu;
 
-    AppWindow(Menu menu) {
+    JanelaApp(Menu menu) {
         this.menu = menu;
-        setTitle("Sales System");
+        setTitle("Sistema de Vendas");
         setSize(800, 600);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        buttonPanel = new JPanel(new GridLayout(0, 1));
-        JScrollPane scroll = new JScrollPane(buttonPanel);
+        painelBotoes = new JPanel();
+        JScrollPane scroll = new JScrollPane(painelBotoes);
 
-        output = new JTextArea(20, 60);
-        output.setEditable(false);
-        JScrollPane outScroll = new JScrollPane(output);
+        saida = new JTextArea(20, 60);
+        saida.setEditable(false);
+        JScrollPane saidaScroll = new JScrollPane(saida);
 
         add(scroll, BorderLayout.WEST);
-        add(outScroll, BorderLayout.CENTER);
+        add(saidaScroll, BorderLayout.CENTER);
 
-        rebuildButtons();
+        reconstruirBotoes();
     }
 
-    void rebuildButtons() {
-        buttonPanel.removeAll();
-        for (MenuFunctionality f : menu.getFunctionalities()) {
-            JButton btn = new JButton(f.getLabel());
+    void reconstruirBotoes() {
+        painelBotoes.removeAll();
+        for (FuncionalidadeMenu f : menu.getFuncionalidades()) {
+            JButton btn = new JButton(f.getRotulo());
             btn.addActionListener(e -> {
-                // Redirect System.out to output area
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 PrintStream ps = new PrintStream(baos);
                 PrintStream old = System.out;
                 System.setOut(ps);
-                f.execute();
+                f.executar();
                 System.setOut(old);
-                output.append(baos.toString());
+                saida.append(baos.toString());
             });
-            buttonPanel.add(btn);
+            painelBotoes.add(btn);
         }
-        buttonPanel.revalidate();
-        buttonPanel.repaint();
+        painelBotoes.revalidate();
+        painelBotoes.repaint();
     }
 
-    // Call this after any runtime registration
-    void refresh() { rebuildButtons(); }
+    void atualizar() { reconstruirBotoes(); }
 }
 ```
 
 ---
 
-## 4. OutputPanel (optional — inline in AppWindow)
+## 4. Redirecionando I/O de Plugins
 
-Just a `JTextArea` with a helper:
-
-```java
-void append(String text) { output.append(text + "\n"); }
-void clear() { output.setText(""); }
-```
+Comandos usam `System.out.println` — intercepte via `System.setOut(PrintStream)` envolvendo um `ByteArrayOutputStream`. Isso evita tocar em qualquer codigo de plugin.
 
 ---
 
-## 5. Redirecting Plugin I/O
-
-Commands use `System.out.println` — intercept via `System.setOut(PrintStream)` wrapping a `ByteArrayOutputStream`. This avoids touching any plugin code.
-
----
-
-## 6. Main.java Change
+## 5. Mudanca no Principal.java
 
 ```java
 SwingUtilities.invokeLater(() -> {
-    AppWindow window = new AppWindow(menu);
-    window.setVisible(true);
+    JanelaApp janela = new JanelaApp(menu);
+    janela.setVisible(true);
 });
 ```
 
-Wrap the context wiring as-is; add the GUI launch after plugin registration.
+Envolva a configuracao do contexto como esta; adicione a inicializacao da GUI apos o registro de plugins.
 
 ---
 
-## 7. Runtime Refresh
+## 6. Atualizacao Runtime
 
-After `menu.loadPlugin(...)` or `menu.addFunctionality(...)`, call `window.refresh()` to regenerate the button panel. Pass the window ref through `FunctionalityContext` or a callback.
+Apos `menu.carregarPlugin(...)` ou `menu.adicionarFuncionalidade(...)`, chame `janela.atualizar()` para regenerar o painel de botoes. Passe a referencia da janela atraves de `ContextoFuncionalidade` ou um callback.
 
 ---
 
-## 8. Summary
+## 7. Resumo
 
-| File | LOC |
+| Arquivo | LOC |
 |---|---|
-| `AppWindow.java` | ~80 |
-| `Main.java` diff | +5 lines |
+| `JanelaApp.java` | ~80 |
+| `Principal.java` diff | +5 linhas |
 
-Total added: ~85 lines. Zero new dependencies. All existing patterns preserved.
+Total adicionado: ~85 linhas. Zero novas dependencias. Todos os padroes existentes preservados.
