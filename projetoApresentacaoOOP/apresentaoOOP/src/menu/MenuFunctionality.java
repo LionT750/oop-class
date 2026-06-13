@@ -5,4 +5,5 @@ public interface MenuFunctionality {
     String getLabel();
     String getDescription();
     void execute();
+    default int order() { return 0; }
 }
