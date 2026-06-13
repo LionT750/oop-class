@@ -8,6 +8,7 @@ import menu.PluginRegistry;
 import plugins.ProductPlugin;
 import plugins.RuntimePluginLoader;
 import plugins.SalesPlugin;
+import plugins.SeedDataPlugin;
 import repository.Repository;
 
 public class Main {
@@ -20,6 +21,7 @@ public class Main {
 
         pluginRegistry.registerPlugin(new ProductPlugin(context));
         pluginRegistry.registerPlugin(new SalesPlugin(context));
+        pluginRegistry.registerPlugin(new SeedDataPlugin(context));
         pluginRegistry.registerPlugin(new RuntimePluginLoader(context));
 
         for (var p : pluginRegistry.getAllPlugins()) {
