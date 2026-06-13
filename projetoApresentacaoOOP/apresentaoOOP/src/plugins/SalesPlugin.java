@@ -57,8 +57,9 @@ public class SalesPlugin implements Plugin {
         for (Product p : products) {
             System.out.println("  " + p.getId() + " - " + p.getName() + " ($" + String.format("%.2f", p.getPrice()) + ") stock: " + p.getStock());
         }
-        System.out.print("Select product ID: ");
+        Printer.prompt("Enter the product ID from the list above (0 to cancel): ");
         long productId = reader.readInt();
+        if (productId == 0) { System.out.println("Cancelled."); return null; }
         Optional<Product> opt = repo.findProductById(productId);
         if (opt.isEmpty()) {
             Printer.error("Product not found.");
@@ -71,21 +72,27 @@ public class SalesPlugin implements Plugin {
         public String getId() { return "create-physical-sale"; }
         public String getLabel() { return "Create Physical Sale"; }
         public String getDescription() { return "Create a new physical sale"; }
+        public int order() { return 1; }
         public void execute() {
             Product product = selectProduct();
             if (product == null) return;
 
-            System.out.print("Quantity: ");
+            Printer.prompt("Quantity (max " + product.getStock() + " available, 0 to cancel): ");
             int quantity = reader.readInt();
+            if (quantity == 0) { System.out.println("Cancelled."); return; }
             if (quantity > product.getStock()) {
-                Printer.error("Insufficient stock. Available: " + product.getStock());
+                Printer.error("Only " + product.getStock() + " units in stock. Sale cancelled.");
                 return;
             }
-            System.out.print("Customer name: ");
+            if (quantity < 0) {
+                Printer.error("Quantity must be positive.");
+                return;
+            }
+            Printer.prompt("Customer name: ");
             String customerName = reader.readString();
-            System.out.print("Shipping address: ");
+            Printer.prompt("Shipping address (street, number): ");
             String address = reader.readString();
-            System.out.print("Postal code: ");
+            Printer.prompt("Postal code (e.g. 12345-678): ");
             String postalCode = reader.readString();
 
             product.setStock(product.getStock() - quantity);
@@ -102,19 +109,25 @@ public class SalesPlugin implements Plugin {
         public String getId() { return "create-digital-sale"; }
         public String getLabel() { return "Create Digital Sale"; }
         public String getDescription() { return "Create a new digital sale"; }
+        public int order() { return 1; }
         public void execute() {
             Product product = selectProduct();
             if (product == null) return;
 
-            System.out.print("Quantity: ");
+            Printer.prompt("Quantity (max " + product.getStock() + " available, 0 to cancel): ");
             int quantity = reader.readInt();
+            if (quantity == 0) { System.out.println("Cancelled."); return; }
             if (quantity > product.getStock()) {
-                Printer.error("Insufficient stock. Available: " + product.getStock());
+                Printer.error("Only " + product.getStock() + " units in stock. Sale cancelled.");
                 return;
             }
-            System.out.print("Customer name: ");
+            if (quantity < 0) {
+                Printer.error("Quantity must be positive.");
+                return;
+            }
+            Printer.prompt("Customer name: ");
             String customerName = reader.readString();
-            System.out.print("Email: ");
+            Printer.prompt("Customer email: ");
             String email = reader.readString();
             String downloadKey = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
 
@@ -132,6 +145,7 @@ public class SalesPlugin implements Plugin {
         public String getId() { return "list-physical-sales"; }
         public String getLabel() { return "List Physical Sales"; }
         public String getDescription() { return "List all physical sales"; }
+        public int order() { return 1; }
         public void execute() {
             List<SalesPhysical> sales = repo.findAllPhysicalSales();
             if (sales.isEmpty()) {
@@ -149,6 +163,7 @@ public class SalesPlugin implements Plugin {
         public String getId() { return "list-digital-sales"; }
         public String getLabel() { return "List Digital Sales"; }
         public String getDescription() { return "List all digital sales"; }
+        public int order() { return 1; }
         public void execute() {
             List<SalesDigital> sales = repo.findAllDigitalSales();
             if (sales.isEmpty()) {
@@ -166,6 +181,7 @@ public class SalesPlugin implements Plugin {
         public String getId() { return "list-all-sales"; }
         public String getLabel() { return "List All Sales"; }
         public String getDescription() { return "List all sales"; }
+        public int order() { return 1; }
         public void execute() {
             List<Offer> sales = repo.findAllSales();
             if (sales.isEmpty()) {
@@ -183,9 +199,11 @@ public class SalesPlugin implements Plugin {
         public String getId() { return "find-sale"; }
         public String getLabel() { return "Find Sale"; }
         public String getDescription() { return "Find a sale by ID"; }
+        public int order() { return 1; }
         public void execute() {
-            System.out.print("Sale ID: ");
+            Printer.prompt("Sale ID to find (0 to cancel): ");
             long id = reader.readInt();
+            if (id == 0) { System.out.println("Cancelled."); return; }
             Optional<Offer> opt = repo.findSaleById(id);
             if (opt.isPresent()) {
                 System.out.println(opt.get());
@@ -199,6 +217,7 @@ public class SalesPlugin implements Plugin {
         public String getId() { return "count-sales"; }
         public String getLabel() { return "Count Sales"; }
         public String getDescription() { return "Show number of sales"; }
+        public int order() { return 1; }
         public void execute() {
             System.out.println("Total sales: " + repo.countSales());
         }

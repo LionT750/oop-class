@@ -45,6 +45,7 @@ public class DebugPlugin implements Plugin {
         public String getId() { return "debug-product-count"; }
         public String getLabel() { return "Show Product Count"; }
         public String getDescription() { return "Display number of products"; }
+        public int order() { return 4; }
         public void execute() {
             System.out.println("Products in database: " + repo.countProducts());
         }
@@ -54,6 +55,7 @@ public class DebugPlugin implements Plugin {
         public String getId() { return "debug-sales-count"; }
         public String getLabel() { return "Show Sales Count"; }
         public String getDescription() { return "Display number of sales"; }
+        public int order() { return 4; }
         public void execute() {
             System.out.println("Sales in database: " + repo.countSales());
         }
@@ -63,6 +65,7 @@ public class DebugPlugin implements Plugin {
         public String getId() { return "debug-plugins"; }
         public String getLabel() { return "Show Registered Plugins"; }
         public String getDescription() { return "List all registered plugins"; }
+        public int order() { return 4; }
         public void execute() {
             PluginRegistry registry = context.pluginRegistry;
             List<Plugin> plugins = registry.getAllPlugins();
@@ -80,6 +83,7 @@ public class DebugPlugin implements Plugin {
         public String getId() { return "debug-commands"; }
         public String getLabel() { return "Show Loaded Commands"; }
         public String getDescription() { return "List all loaded commands"; }
+        public int order() { return 4; }
         public void execute() {
             List<MenuFunctionality> funcs = menu.getFunctionalities();
             if (funcs.isEmpty()) {
@@ -97,6 +101,7 @@ public class DebugPlugin implements Plugin {
         public String getId() { return "debug-db-state"; }
         public String getLabel() { return "Show Database State"; }
         public String getDescription() { return "Dump full database state"; }
+        public int order() { return 4; }
         public void execute() {
             Printer.separator();
             System.out.println("=== DATABASE DUMP ===");

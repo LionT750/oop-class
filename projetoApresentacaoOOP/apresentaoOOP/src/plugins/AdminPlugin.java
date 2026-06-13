@@ -51,12 +51,15 @@ public class AdminPlugin implements Plugin {
         public String getId() { return "clear-products"; }
         public String getLabel() { return "Clear Products"; }
         public String getDescription() { return "Remove all products"; }
+        public int order() { return 5; }
         public void execute() {
-            System.out.print("Remove all " + repo.countProducts() + " products? (y/n): ");
+            Printer.prompt("Remove all " + repo.countProducts() + " products? Type 'yes' to confirm: ");
             String confirm = context.scanner.nextLine().trim().toLowerCase();
-            if (confirm.equals("y")) {
+            if (confirm.equals("yes")) {
                 repo.clearProducts();
                 Printer.success("All products cleared.");
+            } else {
+                System.out.println("Cancelled.");
             }
         }
     }
@@ -65,12 +68,15 @@ public class AdminPlugin implements Plugin {
         public String getId() { return "clear-sales"; }
         public String getLabel() { return "Clear Sales"; }
         public String getDescription() { return "Remove all sales"; }
+        public int order() { return 5; }
         public void execute() {
-            System.out.print("Remove all " + repo.countSales() + " sales? (y/n): ");
+            Printer.prompt("Remove all " + repo.countSales() + " sales? Type 'yes' to confirm: ");
             String confirm = context.scanner.nextLine().trim().toLowerCase();
-            if (confirm.equals("y")) {
+            if (confirm.equals("yes")) {
                 repo.clearSales();
                 Printer.success("All sales cleared.");
+            } else {
+                System.out.println("Cancelled.");
             }
         }
     }
@@ -79,12 +85,15 @@ public class AdminPlugin implements Plugin {
         public String getId() { return "reset-db"; }
         public String getLabel() { return "Reset Database"; }
         public String getDescription() { return "Reset entire database"; }
+        public int order() { return 5; }
         public void execute() {
-            System.out.print("Reset entire database? (y/n): ");
+            Printer.prompt("Reset entire database (products + sales)? Type 'yes' to confirm: ");
             String confirm = context.scanner.nextLine().trim().toLowerCase();
-            if (confirm.equals("y")) {
+            if (confirm.equals("yes")) {
                 repo.resetDatabase();
                 Printer.success("Database reset.");
+            } else {
+                System.out.println("Cancelled.");
             }
         }
     }
@@ -93,24 +102,33 @@ public class AdminPlugin implements Plugin {
         public String getId() { return "unload-plugin"; }
         public String getLabel() { return "Unload Plugin"; }
         public String getDescription() { return "Unload a registered plugin"; }
+        public int order() { return 5; }
         public void execute() {
             List<Plugin> plugins = pluginRegistry.getAllPlugins();
             if (plugins.isEmpty()) {
                 System.out.println("No plugins to unload.");
                 return;
             }
-            System.out.println("Loaded plugins:");
+            System.out.println("Currently loaded plugins:");
             for (int i = 0; i < plugins.size(); i++) {
                 Plugin p = plugins.get(i);
-                System.out.println((i + 1) + " - " + p.getName() + " (" + p.getId() + ")");
+                System.out.println("  " + (i + 1) + " - " + p.getName() + " (" + p.getId() + ")");
             }
-            System.out.print("Select plugin to unload: ");
+            Printer.prompt("Enter number of plugin to unload (0 to cancel): ");
             int choice = reader.readInt();
+            if (choice == 0) { System.out.println("Cancelled."); return; }
             if (choice < 1 || choice > plugins.size()) {
                 Printer.error("Invalid choice.");
                 return;
             }
-            menu.unloadPlugin(plugins.get(choice - 1).getId());
+            String targetId = plugins.get(choice - 1).getId();
+            for (Plugin p : pluginRegistry.getAllPlugins()) {
+                if (p instanceof RuntimePluginLoader) {
+                    ((RuntimePluginLoader) p).markUnloaded(targetId);
+                    break;
+                }
+            }
+            menu.unloadPlugin(targetId);
         }
     }
 
@@ -118,19 +136,21 @@ public class AdminPlugin implements Plugin {
         public String getId() { return "disable-command"; }
         public String getLabel() { return "Disable Command"; }
         public String getDescription() { return "Remove a command from the menu"; }
+        public int order() { return 5; }
         public void execute() {
             List<MenuFunctionality> funcs = menu.getFunctionalities();
             if (funcs.isEmpty()) {
                 System.out.println("No commands to disable.");
                 return;
             }
-            System.out.println("Loaded commands:");
+            System.out.println("Currently active commands:");
             for (int i = 0; i < funcs.size(); i++) {
                 MenuFunctionality f = funcs.get(i);
-                System.out.println((i + 1) + " - " + f.getLabel() + " (" + f.getId() + ")");
+                System.out.println("  " + (i + 1) + " - " + f.getLabel() + " (" + f.getId() + ")");
             }
-            System.out.print("Select command to disable: ");
+            Printer.prompt("Enter number of command to disable (0 to cancel): ");
             int choice = reader.readInt();
+            if (choice == 0) { System.out.println("Cancelled."); return; }
             if (choice < 1 || choice > funcs.size()) {
                 Printer.error("Invalid choice.");
                 return;
@@ -144,6 +164,7 @@ public class AdminPlugin implements Plugin {
         public String getId() { return "enable-command"; }
         public String getLabel() { return "Enable Command"; }
         public String getDescription() { return "Add a command from a plugin back to the menu"; }
+        public int order() { return 5; }
         public void execute() {
             List<Plugin> plugins = pluginRegistry.getAllPlugins();
             boolean found = false;
@@ -160,8 +181,9 @@ public class AdminPlugin implements Plugin {
                 System.out.println("No disabled commands available.");
                 return;
             }
-            System.out.print("Enter command ID to enable: ");
+            Printer.prompt("Enter the command ID (shown above) to re-enable (empty to cancel): ");
             String id = reader.readString();
+            if (id.isEmpty()) { System.out.println("Cancelled."); return; }
             for (Plugin p : plugins) {
                 for (MenuFunctionality f : p.getFunctionalities()) {
                     if (f.getId().equals(id) && !menu.hasFunctionality(f.getId())) {

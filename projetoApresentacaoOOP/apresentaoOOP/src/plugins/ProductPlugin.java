@@ -47,14 +47,15 @@ public class ProductPlugin implements Plugin {
         public String getId() { return "create-product"; }
         public String getLabel() { return "Create Product"; }
         public String getDescription() { return "Create a new product"; }
+        public int order() { return 2; }
         public void execute() {
-            System.out.print("Name: ");
+            Printer.prompt("Product name: ");
             String name = reader.readString();
-            System.out.print("Description: ");
+            Printer.prompt("Description (brief): ");
             String description = reader.readString();
-            System.out.print("Price: ");
+            Printer.prompt("Price (e.g. 29.99): ");
             double price = reader.readDouble();
-            System.out.print("Stock quantity: ");
+            Printer.prompt("Initial stock (units): ");
             int stock = reader.readInt();
 
             Product product = new Product(IdGenerator.nextProductId(), name, description, price, stock);
@@ -67,6 +68,7 @@ public class ProductPlugin implements Plugin {
         public String getId() { return "list-products"; }
         public String getLabel() { return "List Products"; }
         public String getDescription() { return "List all products"; }
+        public int order() { return 2; }
         public void execute() {
             List<Product> products = repo.findAllProducts();
             if (products.isEmpty()) {
@@ -84,9 +86,11 @@ public class ProductPlugin implements Plugin {
         public String getId() { return "find-product"; }
         public String getLabel() { return "Find Product"; }
         public String getDescription() { return "Find product by ID"; }
+        public int order() { return 2; }
         public void execute() {
-            System.out.print("Product ID: ");
+            Printer.prompt("Product ID to find (0 to cancel): ");
             long id = reader.readInt();
+            if (id == 0) { System.out.println("Cancelled."); return; }
             Optional<Product> opt = repo.findProductById(id);
             if (opt.isPresent()) {
                 System.out.println(opt.get());
@@ -95,7 +99,7 @@ public class ProductPlugin implements Plugin {
                 System.out.println("  Stock: " + p.getStock());
                 System.out.println("  Active: " + p.isActive());
             } else {
-                Printer.error("Product not found.");
+                Printer.error("No product with ID " + id + " found.");
             }
         }
     }
@@ -104,24 +108,30 @@ public class ProductPlugin implements Plugin {
         public String getId() { return "update-product"; }
         public String getLabel() { return "Update Product"; }
         public String getDescription() { return "Update product details"; }
+        public int order() { return 2; }
         public void execute() {
-            System.out.print("Product ID to update: ");
+            Printer.prompt("Product ID to update (0 to cancel): ");
             long id = reader.readInt();
+            if (id == 0) { System.out.println("Cancelled."); return; }
             Optional<Product> opt = repo.findProductById(id);
             if (opt.isEmpty()) {
-                Printer.error("Product not found.");
+                Printer.error("No product with ID " + id + " found.");
                 return;
             }
             Product product = opt.get();
             System.out.println("Current: " + product);
-            System.out.print("New name (" + product.getName() + "): ");
-            String name = reader.readString();
-            System.out.print("New description (" + product.getDescription() + "): ");
-            String description = reader.readString();
-            System.out.print("New price (" + product.getPrice() + "): ");
-            double price = reader.readDouble();
-            System.out.print("New stock (" + product.getStock() + "): ");
-            int stock = reader.readInt();
+            Printer.prompt("New name (Enter = keep \"" + product.getName() + "\"): ");
+            String name = reader.readStringOptional();
+            if (name.isEmpty()) name = product.getName();
+            Printer.prompt("New description (Enter = keep \"" + product.getDescription() + "\"): ");
+            String description = reader.readStringOptional();
+            if (description.isEmpty()) description = product.getDescription();
+            Printer.prompt("New price (Enter = keep " + product.getPrice() + "): ");
+            String priceStr = reader.readStringOptional();
+            double price = priceStr.isEmpty() ? product.getPrice() : Double.parseDouble(priceStr);
+            Printer.prompt("New stock (Enter = keep " + product.getStock() + "): ");
+            String stockStr = reader.readStringOptional();
+            int stock = stockStr.isEmpty() ? product.getStock() : Integer.parseInt(stockStr);
 
             product.setName(name);
             product.setDescription(description);
@@ -136,12 +146,14 @@ public class ProductPlugin implements Plugin {
         public String getId() { return "delete-product"; }
         public String getLabel() { return "Delete Product"; }
         public String getDescription() { return "Delete a product"; }
+        public int order() { return 2; }
         public void execute() {
-            System.out.print("Product ID to delete: ");
+            Printer.prompt("Product ID to delete (0 to cancel): ");
             long id = reader.readInt();
+            if (id == 0) { System.out.println("Cancelled."); return; }
             Optional<Product> opt = repo.findProductById(id);
             if (opt.isEmpty()) {
-                Printer.error("Product not found.");
+                Printer.error("No product with ID " + id + " found.");
                 return;
             }
             repo.deleteProduct(opt.get());
@@ -153,12 +165,14 @@ public class ProductPlugin implements Plugin {
         public String getId() { return "deactivate-product"; }
         public String getLabel() { return "Deactivate Product"; }
         public String getDescription() { return "Toggle product active status"; }
+        public int order() { return 2; }
         public void execute() {
-            System.out.print("Product ID: ");
+            Printer.prompt("Product ID (0 to cancel): ");
             long id = reader.readInt();
+            if (id == 0) { System.out.println("Cancelled."); return; }
             Optional<Product> opt = repo.findProductById(id);
             if (opt.isEmpty()) {
-                Printer.error("Product not found.");
+                Printer.error("No product with ID " + id + " found.");
                 return;
             }
             Product p = opt.get();
@@ -172,6 +186,7 @@ public class ProductPlugin implements Plugin {
         public String getId() { return "count-products"; }
         public String getLabel() { return "Count Products"; }
         public String getDescription() { return "Show number of products"; }
+        public int order() { return 2; }
         public void execute() {
             System.out.println("Total products: " + repo.countProducts());
         }

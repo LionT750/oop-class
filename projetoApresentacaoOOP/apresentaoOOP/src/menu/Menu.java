@@ -1,6 +1,7 @@
 package menu;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
@@ -11,6 +12,7 @@ public class Menu {
     private boolean running;
     private Scanner scanner;
     private PluginRegistry pluginRegistry;
+    private Runnable onChanged;
 
     public Menu(Scanner scanner, PluginRegistry pluginRegistry) {
         this.functionalities = new ArrayList<>();
@@ -19,8 +21,11 @@ public class Menu {
         this.pluginRegistry = pluginRegistry;
     }
 
+    public void setOnChanged(Runnable r) { this.onChanged = r; }
+
     public void addFunctionality(MenuFunctionality functionality) {
         functionalities.add(functionality);
+        if (onChanged != null) onChanged.run();
     }
 
     public void removeFunctionality(String id) {
@@ -28,6 +33,7 @@ public class Menu {
         while (it.hasNext()) {
             if (it.next().getId().equals(id)) {
                 it.remove();
+                if (onChanged != null) onChanged.run();
                 return;
             }
         }
@@ -37,8 +43,14 @@ public class Menu {
         return functionalities.stream().anyMatch(f -> f.getId().equals(id));
     }
 
+    private List<MenuFunctionality> getSorted() {
+        List<MenuFunctionality> sorted = new ArrayList<>(functionalities);
+        sorted.sort(Comparator.comparingInt(MenuFunctionality::order));
+        return sorted;
+    }
+
     public List<MenuFunctionality> getFunctionalities() {
-        return new ArrayList<>(functionalities);
+        return getSorted();
     }
 
     public void clearFunctionalities() {
@@ -75,8 +87,9 @@ public class Menu {
         while (running) {
             Printer.separator();
             Printer.header("MENU");
-            for (int i = 0; i < functionalities.size(); i++) {
-                MenuFunctionality f = functionalities.get(i);
+            List<MenuFunctionality> sorted = getSorted();
+            for (int i = 0; i < sorted.size(); i++) {
+                MenuFunctionality f = sorted.get(i);
                 System.out.println((i + 1) + " - " + f.getLabel());
             }
             System.out.print("Choose: ");
@@ -89,8 +102,8 @@ public class Menu {
                 continue;
             }
 
-            if (choice >= 1 && choice <= functionalities.size()) {
-                MenuFunctionality selected = functionalities.get(choice - 1);
+            if (choice >= 1 && choice <= sorted.size()) {
+                MenuFunctionality selected = sorted.get(choice - 1);
                 Printer.header(selected.getLabel());
                 selected.execute();
             } else if (choice == 0) {

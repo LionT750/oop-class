@@ -1,7 +1,12 @@
 package plugins;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import menu.FunctionalityContext;
 import menu.MenuFunctionality;
 import menu.Plugin;
@@ -11,10 +16,26 @@ import utils.Printer;
 public class RuntimePluginLoader implements Plugin {
     private FunctionalityContext context;
     private ConsoleReader reader;
+    private Map<String, PluginFactory> catalog;
+    private Set<String> loaded;
 
     public RuntimePluginLoader(FunctionalityContext context) {
         this.context = context;
         this.reader = new ConsoleReader(context.scanner);
+        this.catalog = new LinkedHashMap<>();
+        this.loaded = new HashSet<>();
+    }
+
+    public void registerAvailablePlugin(String id, PluginFactory factory) {
+        catalog.put(id, factory);
+    }
+
+    public void markLoaded(String pluginId) {
+        loaded.add(pluginId);
+    }
+
+    public void markUnloaded(String pluginId) {
+        loaded.remove(pluginId);
     }
 
     @Override
@@ -29,38 +50,50 @@ public class RuntimePluginLoader implements Plugin {
     @Override
     public List<MenuFunctionality> getFunctionalities() {
         return Arrays.asList(
-            new LoadDebugPlugin(),
-            new LoadAdminPlugin(),
+            new LoadPlugin(),
             new UnloadPlugin(),
             new ListPlugins()
         );
     }
 
-    private class LoadDebugPlugin implements MenuFunctionality {
-        public String getId() { return "load-debug-plugin"; }
-        public String getLabel() { return "Load Debug Plugin"; }
-        public String getDescription() { return "Load the debug plugin at runtime"; }
-        public void execute() {
-            if (context.pluginRegistry.containsPlugin("debug-plugin")) {
-                Printer.error("Debug plugin is already loaded.");
-                return;
-            }
-            Plugin debugPlugin = new DebugPlugin(context);
-            context.menu.loadPlugin(debugPlugin);
-        }
+    public interface PluginFactory {
+        Plugin create();
     }
 
-    private class LoadAdminPlugin implements MenuFunctionality {
-        public String getId() { return "load-admin-plugin"; }
-        public String getLabel() { return "Load Admin Plugin"; }
-        public String getDescription() { return "Load the admin plugin at runtime"; }
+    private class LoadPlugin implements MenuFunctionality {
+        public String getId() { return "load-plugin"; }
+        public String getLabel() { return "Load Plugin"; }
+        public String getDescription() { return "Load a plugin by selection"; }
+        public int order() { return 3; }
         public void execute() {
-            if (context.pluginRegistry.containsPlugin("admin-plugin")) {
-                Printer.error("Admin plugin is already loaded.");
+            List<Map.Entry<String, PluginFactory>> available = new ArrayList<>();
+            for (var entry : catalog.entrySet()) {
+                if (!loaded.contains(entry.getKey())) {
+                    available.add(entry);
+                }
+            }
+            if (available.isEmpty()) {
+                System.out.println("No plugins available to load.");
                 return;
             }
-            Plugin adminPlugin = new AdminPlugin(context);
-            context.menu.loadPlugin(adminPlugin);
+            System.out.println("Available plugins:");
+            for (int i = 0; i < available.size(); i++) {
+                Plugin stub = available.get(i).getValue().create();
+                System.out.println("  " + (i + 1) + " - " + stub.getName());
+            }
+            Printer.prompt("Enter number to load (0 to cancel): ");
+            int choice = reader.readInt();
+            if (choice == 0) {
+                System.out.println("Cancelled.");
+                return;
+            }
+            if (choice < 1 || choice > available.size()) {
+                Printer.error("Invalid choice.");
+                return;
+            }
+            Plugin plugin = available.get(choice - 1).getValue().create();
+            loaded.add(plugin.getId());
+            context.menu.loadPlugin(plugin);
         }
     }
 
@@ -68,9 +101,15 @@ public class RuntimePluginLoader implements Plugin {
         public String getId() { return "runtime-unload-plugin"; }
         public String getLabel() { return "Unload Plugin"; }
         public String getDescription() { return "Unload a plugin by ID"; }
+        public int order() { return 3; }
         public void execute() {
-            System.out.print("Plugin ID to unload: ");
+            Printer.prompt("Enter plugin ID to unload (use 'List Plugins' first to see IDs): ");
             String pluginId = reader.readString();
+            if (pluginId.isEmpty()) {
+                System.out.println("Cancelled.");
+                return;
+            }
+            loaded.remove(pluginId);
             context.menu.unloadPlugin(pluginId);
         }
     }
@@ -79,6 +118,7 @@ public class RuntimePluginLoader implements Plugin {
         public String getId() { return "list-loaded-plugins"; }
         public String getLabel() { return "List Plugins"; }
         public String getDescription() { return "Show all loaded plugins"; }
+        public int order() { return 3; }
         public void execute() {
             var plugins = context.pluginRegistry.getAllPlugins();
             if (plugins.isEmpty()) {

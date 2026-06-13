@@ -16,4 +16,8 @@ public class Printer {
     public static void success(String message) {
         System.out.println("[OK] " + message);
     }
+
+    public static void prompt(String message) {
+        System.out.print(">> " + message);
+    }
 }
