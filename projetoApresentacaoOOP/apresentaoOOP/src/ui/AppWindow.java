@@ -83,17 +83,17 @@ public class AppWindow extends JFrame {
                     output.append(s);
                     output.setCaretPosition(output.getDocument().getLength());
                 });
-            }
-        };
-        PrintStream old = System.out;
-        System.setOut(ps);
-        try {
-            f.execute();
-        } catch (ConsoleReader.Cancelled e) {
-            output.append("Cancelled.\n");
-        } catch (Exception e) {
-            e.printStackTrace(ps);
-        }
-        System.setOut(old);
+                    }
+                };
+                PrintStream old = System.out;
+                System.setOut(ps);
+                try {
+                    f.execute();
+                } catch (ConsoleReader.Cancelled e) {
+                    output.append("Cancelled.\n");
+                } catch (Exception e) {
+                    e.printStackTrace(ps);
+                }
+                System.setOut(old);
     }
 }
