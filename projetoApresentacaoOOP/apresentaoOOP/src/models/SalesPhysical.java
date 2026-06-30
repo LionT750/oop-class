@@ -22,6 +22,11 @@ public class SalesPhysical extends Offer {
 
     @Override
     public String toString() {
-        return "[Physical] " + super.toString() + " | " + customerName + " | " + shippingAddress;
+        return "[Physical] " + super.toString() + " | " + customerName + " | "  + " | " + getDeliveryType() + " " + shippingAddress;
+    }
+
+    @Override
+    public String getDeliveryType(){
+        return "Delivered via physical transport";
     }
 }

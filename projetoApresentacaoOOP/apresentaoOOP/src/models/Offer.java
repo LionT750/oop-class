@@ -2,7 +2,7 @@ package models;
 
 import java.time.LocalDateTime;
 
-public class Offer {
+public  class Offer {
     private Long id;
     private Product product;
     private int quantity;
@@ -21,6 +21,10 @@ public class Offer {
     public int getQuantity() { return quantity; }
     public void setQuantity(int quantity) { this.quantity = quantity; }
     public LocalDateTime getCreatedAt() { return createdAt; }
+
+    public  String getDeliveryType() {
+        return "";
+    }
 
     @Override
     public String toString() {

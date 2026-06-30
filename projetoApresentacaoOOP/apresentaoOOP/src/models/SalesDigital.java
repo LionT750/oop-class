@@ -22,6 +22,11 @@ public class SalesDigital extends Offer {
 
     @Override
     public String toString() {
-        return "[Digital] " + super.toString() + " | " + customerName + " | " + email;
+        return "[Digital] " + super.toString() + " | " + customerName + " | " + getDeliveryType() + " " + email;
+    }
+
+    @Override
+    public String getDeliveryType(){
+        return "Downloadable via link/email";
     }
 }
