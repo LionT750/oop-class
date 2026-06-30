@@ -1,0 +1,5 @@
+// tests folder
+src/test
+
+// binaries
+target/
