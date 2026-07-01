@@ -52,7 +52,7 @@ public class Main {
         var trainingDataset = new MutableDataset<>(dataSplitter.getTrain());
         var testingDataset = new MutableDataset<>(dataSplitter.getTest());
 
-        Trainer<Label> trainer = new KNNTrainer<>(12, DistanceType.COSINE.getDistance(),2, new VotingCombiner(), KNNModel.Backend.INNERTHREADPOOL, NeighboursQueryFactoryType.BRUTE_FORCE);
+        Trainer<Label> trainer = new KNNTrainer<>(12, DistanceType.COSINE.getDistance(), 2, new VotingCombiner(), KNNModel.Backend.INNERTHREADPOOL, NeighboursQueryFactoryType.BRUTE_FORCE);
 
         Model<Label> knnModel = trainer.train(trainingDataset);
 

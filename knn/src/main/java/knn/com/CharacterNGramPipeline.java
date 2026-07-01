@@ -30,7 +30,7 @@ public class CharacterNGramPipeline implements TextPipeline {
 
             String gram = word.substring(i, i + n);
 
-            String featureName = tag + "-" + gram;
+            String featureName =  gram;
 
             counts.merge(featureName, 1.0, Double::sum);
         }
